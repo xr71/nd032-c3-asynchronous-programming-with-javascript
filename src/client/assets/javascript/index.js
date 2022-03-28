@@ -1,7 +1,7 @@
 // PROVIDED CODE BELOW (LINES 1 - 80) DO NOT REMOVE
 
 // The store will hold all information needed globally
-let store = {
+const store = {
 	track_id: undefined,
 	player_id: undefined,
 	race_id: undefined,
@@ -76,33 +76,37 @@ async function delay(ms) {
 }
 // ^ PROVIDED CODE ^ DO NOT REMOVE
 
-// START HERE - bookmark
 // This async function controls the flow of the race, add the logic and error handling
 async function handleCreateRace() {
 
-	const {
-		player_id,
-		track_id
-	} = store;
+	try {
 
-	console.log(player_id)
-	const track_name = store.tracks[track_id - 1]
+		const {
+			player_id,
+			track_id
+		} = store;
 
-	// render starting UI
-	// renderRaceStartView needs track (name) and racers
-	renderAt('#race', renderRaceStartView(track_name, store.racers))
+		const track_name = store.tracks[track_id - 1]
 
-	const race = await createRace(player_id, track_id);
-	console.log(race);
+		// render starting UI
+		// renderRaceStartView needs track (name) and racers
+		renderAt('#race', renderRaceStartView(track_name, store.racers))
 
-	// For the API to work properly, the race id should be race id - 1
-	store.race_id = race.ID - 1;
+		const race = await createRace(player_id, track_id);
 
-	// The race has been created, now start the countdown
-	await runCountdown()
+		// For the API to work properly, the race id should be race id - 1
+		store.race_id = race.ID - 1;
 
-	await startRace(store.race_id)
-	await runRace(store.race_id)
+		// The race has been created, now start the countdown
+		await runCountdown()
+
+		await startRace(store.race_id)
+		await runRace(store.race_id)
+	} catch (error) {
+		console.log({
+			error
+		})
+	}
 }
 
 function runRace(raceID) {
@@ -112,7 +116,6 @@ function runRace(raceID) {
 
 			const raceInterval = setInterval(() => {
 				getRace(raceID).then(data => {
-					console.log(data);
 					if (data.status === "in-progress") {
 						console.log("still racing");
 						renderAt("#leaderBoard", raceProgress(data.positions));
@@ -151,8 +154,6 @@ async function runCountdown() {
 				}
 
 			}, 1000)
-
-
 		})
 	} catch (error) {
 		console.log(error);
@@ -195,7 +196,6 @@ function handleAccelerate() {
 
 }
 
-// DO NOT EDIT - bookmark
 // HTML VIEWS ------------------------------------------------
 // Provided code - do not remove
 
@@ -306,15 +306,9 @@ function resultsView(positions) {
 
 function raceProgress(positions) {
 
-	console.log(positions);
-	console.log(store.player_id);
-
-	let userPlayer = positions.find(e => e.id === parseInt(store.player_id))
-	// console.log(userPlayer);
+	const userPlayer = positions.find(e => e.id === parseInt(store.player_id))
 
 	userPlayer.driver_name += " (you)"
-
-	// console.log(userPlayer);
 
 	positions = positions.sort((a, b) => (a.segment > b.segment) ? -1 : 1)
 	let count = 1
@@ -327,7 +321,7 @@ function raceProgress(positions) {
 				</td>
 			</tr>
 		`
-	})
+	}).join(" ")
 
 	return `
 		<main>
@@ -361,8 +355,6 @@ function defaultFetchOpts() {
 		},
 	}
 }
-
-// API fetches - bookmark
 
 function getTracks() {
 
